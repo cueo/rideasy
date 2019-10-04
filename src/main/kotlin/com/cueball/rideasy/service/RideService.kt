@@ -6,6 +6,8 @@ import com.cueball.rideasy.exception.RideException
 import com.uber.sdk.rides.client.model.PriceEstimate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.*
+import kotlin.collections.HashMap
 
 
 /**
@@ -27,16 +29,16 @@ class RideService {
             throw RideException(RideException.ExceptionType.PRODUCT_NOT_FOUND.exceptionMessage)
         }
 
-        val priceEstimates: MutableMap<UberRide, Pair<Int?, Int?>> = HashMap()
+        val priceEstimates: MutableMap<UberRide, Pair<Int?, Int?>> = EnumMap(UberRide::class.java)
         for (price in prices) {
-            when (price.displayName) {
-                UberRide.GO.displayName -> priceEstimates[UberRide.GO] = Pair(price.lowEstimate, price.highEstimate)
-                UberRide.POOL.displayName -> priceEstimates[UberRide.POOL] = Pair(price.lowEstimate, price.highEstimate)
-                UberRide.XL.displayName -> priceEstimates[UberRide.XL] = Pair(price.lowEstimate, price.highEstimate)
-                UberRide.PREMIER.displayName -> priceEstimates[UberRide.PREMIER] = Pair(price.lowEstimate, price.highEstimate)
-                UberRide.AIRPORT.displayName -> priceEstimates[UberRide.AIRPORT] = Pair(price.lowEstimate, price.highEstimate)
+            if (enumContains<UberRide>(price.displayName)) {
+                priceEstimates[UberRide.valueOf(price.displayName)] = Pair(price.lowEstimate, price.highEstimate)
             }
         }
         return priceEstimates
+    }
+
+    private inline fun <reified T: Enum<T>> enumContains(name: String): Boolean {
+        return enumValues<T>().any { it.name == name }
     }
 }
